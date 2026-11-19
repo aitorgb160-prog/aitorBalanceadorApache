@@ -1,18 +1,17 @@
 # Balanceador con Apache
 **Realizado por:** Aitor Guerrero
-**Dominio:** https://balanceadorAITOR.duckdns.org
+**Dominio:** https://balanceadoraitor.duckdns.org
 
 ## Índice
  
 1. [Introducción](#1-introducción)
 2. [Esquema de la infraestructura](#2-esquema-de-la-infraestructura)
-3. [Vagrantfile](#Vagrantfile)
-4. [Scripts](#Scripts)
+3. [Vagrantfile](#3-vagrantfile)
+4. [Scripts](#4-scripts)
 5. [Seguridad](#5-seguridad)
-6. [IP pública y dominio](#6-ip-pública-y-dominio)
+6. [Red publica y dominio](#6-red-pública-y-dominio)
 7. [Certificado HTTPS](#7-certificado-https)
 8. [Comprobación final](#8-comprobación-final)
-9. [Vídeo de demostración](#9-vídeo-de-demostración)
 ---
  
 ## 1. Introducción
@@ -28,7 +27,7 @@ Herramientas utilizadas: **VirtualBox** (máquinas virtuales), **Vagrant** (crea
 ## 2. Esquema de la infraestructura
 | Máquina | Capa | IP |
 |---|---|---|
-| AitorGuerreroBalanceador | 1 | 192.168.1.200 (pública) y 192.168.20.10 |
+| AitorGuerreroBalanceador | 1 | 192.168.18.200 (pública) y 192.168.20.10 |
 | AitorGuerreroWeb1 | 2 | 192.168.20.11 y 192.168.30.11 |
 | AitorGuerreroWeb2 | 2 | 192.168.20.12 y 192.168.30.12 |
 | AitorGuerreroBBDD | 3 | 192.168.30.10 |
@@ -51,14 +50,7 @@ Cada máquina se configura automáticamente con un script de la carpeta provisio
 | `web.sh` | Instala Apache, crea una página que indica qué servidor es y activa el cortafuegos |
 | `bbdd.sh` | Instala MariaDB, crea la base de datos `tarea` y el usuario `app`, y activa el cortafuegos |
 
-Para comprobar que los servicios funcionan, entraremos en cada máquina y comprobaremos su status:
-![balanceador](img/balanceador.png)  
-![web1](img/web1.png)  
-![web2](img/web2.png)  
-![bd](img/bd.png)  
-
 ## 5. Seguridad
- 
 Se usa el cortafuegos **UFW**, para que bloquee todo el tráfico de entrada salvo el necesario. Además, cada capa está en una red distinta, por lo que el balanceador no puede llegar a la base de datos.
  
 | Máquina | Tráfico permitido |
@@ -67,8 +59,30 @@ Se usa el cortafuegos **UFW**, para que bloquee todo el tráfico de entrada salv
 | Web1 y Web2 | Puerto 80 solo desde el balanceador |
 | BBDD | Puerto 3306 solo desde Web1 y Web2 |
 
-## 6. IP pública y dominio
- 
-1. El balanceador tiene una interfaz en modo puente con una IP fija de la LAN.
-2. En el router se redirigen los puertos **80 y 443** hacia esa IP.
-3. En DuckDNS se crea el subdominio `balanceadorAITOR.duckdns.org` apuntando a la IP pública del router.
+## 6. Red pública y dominio
+El balanceador tiene una interfaz en modo puente con la IP fija `192.168.18.200` de mi red local. Es la única máquina conectada a la red pública.
+
+El dominio `balanceadoraitor.duckdns.org` se ha creado en DuckDNS apuntando a la IP local del balanceador 192.168.18.200
+
+![duck](img/duck.png)  
+
+## 7. Certificado HTTPS
+Certbot pide crear un registro TXT en el dominio para demostrar que es mío.
+
+```bash
+vagrant ssh balanceador
+sudo sed -i 's/ServerName balanceador/ServerName balanceadoraitor.duckdns.org/' /etc/apache2/sites-available/balanceador.conf
+sudo systemctl reload apache2
+sudo certbot run -a manual -i apache --preferred-challenges dns -d balanceadoraitor.duckdns.org
+```
+
+Certbot muestra un valor que hay que publicar como registro TXT. Se crea desde el navegador con la API de DuckDNS, sustituyendo token por el token de la cuenta y valor por el que indica Certbot. Cuando DuckDNS responde OK, se pulsa Enter en Certbot y este instala el certificado de Let's Encrypt en Apache.
+
+![cert](img/cert.png)  
+![ok](img/ok.png)  
+![cert_valor](img/cert_valor.png)  
+![success](img/success.png)  
+
+## 8. Comprobación final
+Al entrar en `https://balanceadoraitor.duckdns.org` y recargar la página, el balanceador alterna entre Web1 y Web2. El candado indica que la conexión es segura.
+ La comprobación se encuentra en este enlace: https://drive.google.com/file/d/1YZQEQweNI22H9Ryf4XrEACDulw3gdvcX/view?usp=sharing
