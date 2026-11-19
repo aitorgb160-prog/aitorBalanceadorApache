@@ -27,7 +27,7 @@ Herramientas utilizadas: **VirtualBox** (máquinas virtuales), **Vagrant** (crea
 ## 2. Esquema de la infraestructura
 | Máquina | Capa | IP |
 |---|---|---|
-| AitorGuerreroBalanceador | 1 | 192.168.18.200 (pública) y 192.168.20.10 |
+| AitorGuerreroBalanceador | 1 | 192.168.18.200 y 192.168.20.10 |
 | AitorGuerreroWeb1 | 2 | 192.168.20.11 y 192.168.30.11 |
 | AitorGuerreroWeb2 | 2 | 192.168.20.12 y 192.168.30.12 |
 | AitorGuerreroBBDD | 3 | 192.168.30.10 |
@@ -35,7 +35,7 @@ Herramientas utilizadas: **VirtualBox** (máquinas virtuales), **Vagrant** (crea
 ## 3. Vagrantfile
 El archivo describe las cuatro máquinas: su nombre, su memoria, sus redes y el script que las configura. Todas usan la imagen `ubuntu/jammy64` (Ubuntu 22.04).
 
-Al principio del archivo se definen dos variables: `NOMBRE`, que guarda mi nombre y se usa para nombrar a las máquinas (`AitorGuerreroBalanceador`, `AitorGuerreroWeb1`, etc.), e `IP_PUBLICA`, que es la IP fija del balanceador en mi red local (`192.168.18.200`). Todas las máquinas parten de la misma imagen, Ubuntu 22.04 (`ubuntu/jammy64`). Además, se ha ampliado el tiempo máximo de arranque a 10 minutos (`boot_timeout = 600`) para que Vagrant no dé error si una máquina tarda en iniciarse (me ha pasado varias veces), y se ha configurado VirtualBox para mostrar la ventana de cada máquina (`vb.gui = true`) y para desactivar el puerto serie virtual, ya que en Ubuntu 22.04 puede bloquear el arranque.
+Al principio del archivo se definen dos variables: `NOMBRE`, que guarda mi nombre y se usa para nombrar a las máquinas (`AitorGuerreroBalanceador`, `AitorGuerreroWeb1`, etc.), e `IP_PUBLICA`, que es la IP fija del balanceador en mi red local (`192.168.18.200`) (publica me refiero a que es a la que se peude acceder desde el navegador). Todas las máquinas parten de la misma imagen, Ubuntu 22.04 (`ubuntu/jammy64`). Además, se ha ampliado el tiempo máximo de arranque a 10 minutos (`boot_timeout = 600`) para que Vagrant no dé error si una máquina tarda en iniciarse (me ha pasado varias veces), y se ha configurado VirtualBox para mostrar la ventana de cada máquina (`vb.gui = true`) y para desactivar el puerto serie virtual, ya que en Ubuntu 22.04 puede bloquear el arranque.
 
 A continuación se crean las máquinas, empezando por la capa 3. La máquina `bbdd` tiene 1024 MB de memoria, está conectada solo a la red privada `red_bbdd` con la IP `192.168.30.10` y ejecuta el script `bbdd.sh`. Después, un bucle (`(1..2).each`) que crea los dos servidores web con el mismo código: cada uno tiene dos redes, `red_web`, para comunicarse con el balanceador, y `red_bbdd`, para comunicarse con la base de datos. Al script `web.sh` se le pasa el número del servidor y mi nombre, de forma que cada página web indique qué servidor está respondiendo. Por último se define el `balanceador`, que tiene también dos redes: una pública en modo puente, con la IP pública 192.168.18.200, y una privada (`red_web`) con la IP `192.168.20.10`. Su script es `balanceador.sh`.  
 
