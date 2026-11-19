@@ -84,5 +84,5 @@ Certbot muestra un valor que hay que publicar como registro TXT. Se crea desde e
 ![success](img/success.png)  
 
 ## 8. Comprobación final
-Al entrar en `https://balanceadoraitor.duckdns.org` y recargar la página, el balanceador alterna entre Web1 y Web2. El candado indica que la conexión es segura.
- La comprobación se encuentra en este enlace: https://drive.google.com/file/d/1YZQEQweNI22H9Ryf4XrEACDulw3gdvcX/view?usp=sharing
+Al entrar en `https://balanceadoraitor.duckdns.org` y recargar la página, el balanceador alterna entre Web1 y Web2. El certificado indica que la conexión es segura.
+La comprobación se encuentra en este enlace: https://drive.google.com/file/d/1YZQEQweNI22H9Ryf4XrEACDulw3gdvcX/view?usp=sharing
